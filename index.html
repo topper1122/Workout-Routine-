@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workout Routine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4a2c20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workout Routine">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --choc:#4a2c20; --choc-2:#5d3a2b;
+  --beige:#efe3cd; --cream:#fcf8ef; --pill:#f6ecd9;
+  --blue:#1f3b63; --ink:#2b1d17; --muted:#8a7767; --line:#d9ccb4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--beige);color:var(--ink);
+  font-family:Roboto,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+/* top app bar */
+.bar{background:var(--choc);color:#f6ecd9;display:flex;align-items:center;gap:14px;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;flex:0 0 auto}
+.bar button{background:none;border:0;color:inherit;padding:4px;margin:-4px;display:flex;cursor:pointer}
+.bar h1{font-size:19px;font-weight:500;margin:0;letter-spacing:.2px}
+
+/* day selector pill */
+.daysWrap{background:var(--beige);padding:8px 10px 6px;flex:0 0 auto}
+.days{background:var(--choc);border-radius:14px;padding:6px;overflow-x:auto;scrollbar-width:none;
+  display:flex;scroll-snap-type:x proximity}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 20%;scroll-snap-align:center;border:0;background:none;color:#e9dcc4;border-radius:10px;
+  padding:7px 0 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;
+  font-family:inherit;transition:background .25s,color .25s}
+.day b{font-size:14px;font-weight:600}
+.day small{font-size:10px;opacity:.8}
+.day.sel{background:var(--pill);color:var(--choc)}
+.day.sel small{opacity:.75}
+.day{position:relative}
+.day.today::after{content:"";position:absolute;top:6px;right:9px;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.85}
+
+/* content */
+main{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 28px);
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.page{animation:none}
+.page.fromR{animation:inR .28s ease-out}
+.page.fromL{animation:inL .28s ease-out}
+@keyframes inR{from{transform:translateX(34px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inL{from{transform:translateX(-34px);opacity:0}to{transform:none;opacity:1}}
+
+.summary{display:flex;align-items:baseline;justify-content:space-between;padding:8px 4px 4px}
+.summary h2{margin:0;font-size:16px;font-weight:600;color:var(--choc)}
+.summary span{font-size:13px;color:var(--muted)}
+.prog{height:5px;background:var(--line);border-radius:3px;margin:2px 4px 12px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--blue);border-radius:3px;transition:width .3s}
+
+.card{background:var(--cream);border-radius:10px;box-shadow:0 1px 3px rgba(60,35,20,.14);
+  padding:12px 16px 8px;margin-bottom:12px;border-left:4px solid transparent;cursor:pointer;
+  transition:opacity .2s,border-color .2s;user-select:none;-webkit-user-select:none}
+.card .head{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:9px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.chk{width:24px;height:24px;border-radius:6px;border:2px solid #b8a78c;background:#fff;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:.2s}
+.chk svg{opacity:0;transform:scale(.6);transition:.2s}
+.sx{font-size:13.5px;font-weight:600;color:var(--blue);letter-spacing:.2px}
+.row{display:grid;grid-template-columns:104px 1fr;padding:5px 0;font-size:14px;line-height:1.35}
+.row span{color:var(--muted)}
+.row div{color:var(--ink)}
+.card.done{opacity:.72;border-left-color:var(--blue)}
+.card.done .chk{background:var(--blue);border-color:var(--blue)}
+.card.done .chk svg{opacity:1;transform:none}
+.card.done .row.name div{text-decoration:line-through;text-decoration-color:var(--muted)}
+
+/* empty state */
+.empty{margin:60px 6px 0;padding:34px 22px;text-align:center;background:#f4e7cf;border:1px solid #e3c98f;
+  border-radius:10px;color:#4f3c2c;font-size:14px}
+.empty svg{display:block;margin:0 auto 10px}
+</style>
+</head>
+<body>
+<header class="bar">
+  <button id="back" aria-label="Jump to today">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <h1>Workout Routine</h1>
+</header>
+<div class="daysWrap"><nav class="days" id="days"></nav></div>
+<main id="view"><div class="page" id="page"></div></main>
+
+<script>
+// ---------- plan (edit freely) ----------
+// [exercise, sets, reps]
+var PLAN = {
+  1:{title:"Push + Abs",items:[["Push-ups",4,"8–15"],["Pike push-ups",3,"6–12"],["Chair dips",3,"10–15"],["Plank",3,"30–60s"]]},
+  2:{title:"Pull",items:[["Pull-ups",4,"4–10"],["Chin-ups",3,"4–8"],["Inverted rows",3,"8–12"],["Dead hangs",3,"20–40s"]]},
+  3:{title:"Legs + Abs",items:[["Squats",4,"15–25"],["Split squats",3,"8–12 / leg"],["Calf raises",3,"15–20"],["Knee / leg raises",3,"8–15"],["Crunches",3,"15–20"]]},
+  4:{title:"Upper + Hamstrings",items:[["Push + pull-ups",3,"6–12"],["Decline push-ups",3,"8–12"],["Slider ham curls",3,"8–12"],["1-leg bridge",3,"10–15 / leg"],["Side plank",2,"30s / side"]]},
+  5:{title:"Cardio + Stretch",items:[["Cardio",1,"25–30 min"],["Stretch routine",1,"7 stretches, 30s each"]]},
+  6:{title:"Easy Cardio + Stretch",items:[["Easy cardio",1,"30–45 min"],["Stretch routine",1,"7 stretches, 30s each"]]},
+  0:{title:"Stretch + Mobility",items:[["Stretch + mobility",1,"20–30 min"]]}
+};
+var ORDER=[1,2,3,4,5,6,0];                       // Monday first
+var NAMES={0:"Sun",1:"Mon",2:"Tue",3:"Wed",4:"Thu",5:"Fri",6:"Sat"};
+var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// ---------- storage ----------
+var KEY="workout-routine-done-v1", done={};
+try{ done=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ done={}; }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(done)); }catch(e){} }
+
+// ---------- week ----------
+var today=new Date(); today.setHours(0,0,0,0);
+var monday=new Date(today); monday.setDate(today.getDate()-((today.getDay()+6)%7));
+var week=ORDER.map(function(dow,i){ var d=new Date(monday); d.setDate(monday.getDate()+i); return {dow:dow,date:d}; });
+function dkey(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+var sel=week.findIndex(function(w){ return w.date.getTime()===today.getTime(); });
+if(sel<0) sel=0;
+
+// ---------- day pill ----------
+var daysEl=document.getElementById("days");
+week.forEach(function(w,i){
+  var b=document.createElement("button"); b.className="day"; b.type="button";
+  b.innerHTML="<b>"+NAMES[w.dow]+"</b><small>"+MONTHS[w.date.getMonth()]+" "+w.date.getDate()+"</small>";
+  if(w.date.getTime()===today.getTime()) b.classList.add("today");
+  b.onclick=function(){ go(i); };
+  daysEl.appendChild(b);
+});
+function centerSel(smooth){
+  var el=daysEl.children[sel];
+  daysEl.scrollTo({left:el.offsetLeft-(daysEl.clientWidth-el.clientWidth)/2,behavior:smooth?"smooth":"auto"});
+}
+
+// ---------- render ----------
+var CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+var WARN='<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#e0b565" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0zM12 9v4M12 17h.01"/></svg>';
+var pageEl=document.getElementById("page");
+
+function render(dir){
+  var w=week[sel], plan=PLAN[w.dow], k=dkey(w.date);
+  pageEl.className="page"; void pageEl.offsetWidth;
+  if(dir) pageEl.className="page "+(dir>0?"fromR":"fromL");
+  if(!plan||!plan.items.length){
+    pageEl.innerHTML='<div class="empty">'+WARN+'Nothing is scheduled for this day.</div>'; return;
+  }
+  var html='<div class="summary"><h2>'+plan.title+'</h2><span id="cnt"></span></div><div class="prog"><i id="bar"></i></div>';
+  plan.items.forEach(function(it,j){
+    var on=done[k+":"+j]?" done":"";
+    html+='<div class="card'+on+'" data-j="'+j+'">'+
+      '<div class="head"><div class="chk">'+CHECK+'</div><div class="sx">'+it[1]+(it[1]===1?" set":" sets")+' × '+it[2]+'</div></div>'+
+      '<div class="row name"><span>Exercise</span><div>'+it[0]+'</div></div>'+
+      '<div class="row"><span>Sets</span><div>'+it[1]+'</div></div>'+
+      '<div class="row"><span>Reps</span><div>'+it[2]+'</div></div></div>';
+  });
+  pageEl.innerHTML=html; progress(plan,k);
+  Array.prototype.forEach.call(pageEl.querySelectorAll(".card"),function(c){
+    c.onclick=function(){
+      var key=k+":"+c.getAttribute("data-j");
+      if(done[key]) delete done[key]; else done[key]=1;
+      save(); c.classList.toggle("done"); progress(plan,k);
+    };
+  });
+}
+function progress(plan,k){
+  var n=plan.items.length, d=0;
+  for(var j=0;j<n;j++) if(done[k+":"+j]) d++;
+  document.getElementById("cnt").textContent=d+" of "+n+" done";
+  document.getElementById("bar").style.width=(d/n*100)+"%";
+}
+function go(i){
+  if(i<0||i>6||i===sel){ centerSel(true); return; }
+  var dir=i>sel?1:-1; sel=i;
+  Array.prototype.forEach.call(daysEl.children,function(b,n){ b.classList.toggle("sel",n===sel); });
+  centerSel(true); render(dir); document.getElementById("view").scrollTop=0;
+}
+
+// ---------- swipe between days ----------
+var sx=0, sy=0, view=document.getElementById("view");
+view.addEventListener("touchstart",function(e){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+view.addEventListener("touchend",function(e){
+  var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.6) go(sel+(dx<0?1:-1));
+},{passive:true});
+
+document.getElementById("back").onclick=function(){
+  var t=week.findIndex(function(w){ return w.date.getTime()===today.getTime(); }); go(t<0?0:t);
+};
+
+// ---------- start ----------
+Array.prototype.forEach.call(daysEl.children,function(b,n){ b.classList.toggle("sel",n===sel); });
+render(0); centerSel(false);
+window.addEventListener("resize",function(){ centerSel(false); });
+
+if("serviceWorker" in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+</script>
+</body>
+</html>
